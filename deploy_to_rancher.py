@@ -4,8 +4,10 @@ import requests
 
 
 class DeployRancher:
-    def __init__(self, rancher_access_key, rancher_secret_key, rancher_url_api,
-                 rancher_service_name, rancher_docker_image):
+    def __init__(
+            self, rancher_access_key, rancher_secret_key, rancher_url_api,
+            rancher_service_name, rancher_docker_image
+    ):
         self.access_key = rancher_access_key
         self.secret_key = rancher_secret_key
         self.rancher_url_api = rancher_url_api
@@ -24,6 +26,7 @@ class DeployRancher:
             workload = rw.json()
             for w in workload['data']:
                 if w['name'] == self.service_name:
+                    print('found target service', w['name'], 'from namespace', w['namespaceId'])
                     self.rancher_workload_url_api = w_url
                     self.rancher_deployment_path = w['links']['self']
                     self.rancher_namespace = w['namespaceId']
@@ -31,8 +34,7 @@ class DeployRancher:
             if self.rancher_deployment_path != '':
                 break
 
-        rget = requests.get(self.rancher_deployment_path,
-                            auth=(self.access_key, self.secret_key))
+        rget = requests.get(self.rancher_deployment_path, auth=(self.access_key, self.secret_key))
         response = rget.json()
         if 'status' in response and response['status'] == 404:
             config = {
@@ -45,20 +47,23 @@ class DeployRancher:
                 "name": self.service_name
             }
 
-            requests.post(self.rancher_workload_url_api,
-                          json=config, auth=(self.access_key, self.secret_key))
+            requests.post(self.rancher_workload_url_api, json=config, auth=(self.access_key, self.secret_key))
         else:
             response['containers'][0]['image'] = self.docker_image
-
-            requests.put(self.rancher_deployment_path + '?action=redeploy',
-                         json=response, auth=(self.access_key, self.secret_key))
+            result = requests.post(
+                self.rancher_deployment_path + '?action=redeploy', json=response,
+                auth=(self.access_key, self.secret_key)
+            )
+            print('completed with status code', result.status_code)
         sys.exit(0)
 
 
-def deploy_in_rancher(rancher_access_key, rancher_secret_key, rancher_url_api,
-                      rancher_service_name, rancher_docker_image):
-    deployment = DeployRancher(rancher_access_key, rancher_secret_key, rancher_url_api,
-                               rancher_service_name, rancher_docker_image)
+def deploy_in_rancher(
+        rancher_access_key, rancher_secret_key, rancher_url_api, rancher_service_name, rancher_docker_image
+):
+    deployment = DeployRancher(
+        rancher_access_key, rancher_secret_key, rancher_url_api, rancher_service_name, rancher_docker_image
+    )
     deployment.deploy()
 
 
@@ -72,9 +77,9 @@ if __name__ == '__main__':
     try:
         deploy_in_rancher(rancher_access_key, rancher_secret_key, rancher_url_api,
                           rancher_service_name, rancher_docker_image)
-        
+
         if rancher_docker_image_latest != None and rancher_docker_image_latest != "":
-            deploy_in_rancher(rancher_access_key, rancher_secret_key, rancher_url_api, 
+            deploy_in_rancher(rancher_access_key, rancher_secret_key, rancher_url_api,
                               rancher_service_name, rancher_docker_image_latest)
 
     except Exception as e:
