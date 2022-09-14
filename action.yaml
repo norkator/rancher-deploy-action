@@ -1,6 +1,6 @@
-name: 'Rancher Deploy Action'
-description: 'Action to deploy docker image in rancher'
-author: 'Yan Tadeu'
+name: 'Rancher Deploy Action v3'
+description: 'Action for Rancher v3 to deploy docker image'
+# author: ''
 branding:
   icon: 'check'
   color: 'gray-dark'
