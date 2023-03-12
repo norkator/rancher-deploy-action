@@ -26,16 +26,16 @@ class DeployRancher:
         self.rancher_workload_url_api = ''
 
     def deploy(self):
-        rp = requests.get('{}/projects'.format(self.rancher_url_api), auth=(self.access_key, self.secret_key))
+        rp = requests.get('{}/clusters/{}/projects'.format(self.rancher_url_api, self.rancher_cluster_id),
+                          auth=(self.access_key, self.secret_key))
         projects = rp.json()
         for p in projects['data']:
-            print(p)
             w_url = '{}/projects/{}/workloads'.format(self.rancher_url_api, p['id'])
             rw = requests.get(w_url, auth=(self.access_key, self.secret_key))
             workload = rw.json()
             for w in workload['data']:
-                if w['name'] == self.service_name:
-                    print('found target service', w['name'], 'from namespace', w['namespaceId'])
+                if w['name'] == self.service_name and w['namespaceId'] == self.rancher_namespace_id:
+                    print('found target service', w['name'], 'from user given namespace', w['namespaceId'])
                     self.rancher_workload_url_api = w_url
                     self.rancher_deployment_path = w['links']['self']
                     self.rancher_namespace = w['namespaceId']
@@ -43,8 +43,8 @@ class DeployRancher:
             if self.rancher_deployment_path != '':
                 break
 
-        rget = requests.get(self.rancher_deployment_path, auth=(self.access_key, self.secret_key))
-        response = rget.json()
+        request_get = requests.get(self.rancher_deployment_path, auth=(self.access_key, self.secret_key))
+        response = request_get.json()
         response['containers'][0]['image'] = self.docker_image
         result = requests.post(
             self.rancher_deployment_path + '?action=redeploy', json=response,
@@ -52,6 +52,7 @@ class DeployRancher:
         )
         print('redeploy completed with status code', result.status_code)
         sys.exit(0)
+
         # if 'status' in response and response['status'] == 404:
         #     config = {
         #         "containers": [{
