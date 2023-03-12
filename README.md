@@ -1,4 +1,7 @@
-# Action for Github to deploy image in Rancher using Rancher API
+# Action for GitHub to re deploy image in Rancher using Rancher API
+
+This action redeploys existing service. It's handy for automated pipeline which is building app, creating container
+image and when that updated container image is needed to be deployed.
 
 ## Environment variables
 
@@ -6,6 +9,8 @@
 RANCHER_ACCESS_KEY=
 RANCHER_SECRET_KEY=
 RANCHER_URL_API=https://<address>/v3
+RANCHER_CLUSTER_ID=
+NAMESPACE_ID=
 SERVICE_NAME=
 DOCKER_IMAGE=
 DOCKER_IMAGE_LATEST=
@@ -14,13 +19,17 @@ DOCKER_IMAGE_LATEST=
 `RANCHER_ACCESS_KEY` **Required** API Access key created in Rancher.  
 `RANCHER_SECRET_KEY` **Required** API Secret key created in Rancher.  
 `RANCHER_URL_API` **Required** API url of your rancher. Example https://server-address/v3.  
+`RANCHER_CLUSTER_ID` **Required** Cluster id can be found from url
+like `https://server-address/v3/dashboard/c/c-m-dsmw2q28/explorer#cluster-events` here cluster id is `c-m-dsmw2q28`
+part.   
+`NAMESPACE_ID` **Required** deploy action uses selected namespace id  
 `SERVICE_NAME` **Required** Name of your service on Rancher cluster which you want deploy/redeploy.  
 `DOCKER_IMAGE` **Required** URL of your docker image.    
 `DOCKER_IMAGE_LATEST` **Optional** URL of your docker image including latest tag.
 
 ## Example usage
 
-Example for github actions workflow
+Example for GitHub actions workflow
 
 ```yaml
 - name: Rancher Deploy
@@ -29,6 +38,8 @@ Example for github actions workflow
     RANCHER_ACCESS_KEY: ${{ secrets.RANCHER_ACCESS_KEY }}
     RANCHER_SECRET_KEY: ${{ secrets.RANCHER_SECRET_KEY }}
     RANCHER_URL_API: ${{ secrets.RANCHER_URL_API }}
+    RANCHER_CLUSTER_ID: ${{ secrets.RANCHER_CLUSTER_ID }}
+    NAMESPACE_ID: ${{ secrets.NAMESPACE_ID }}
     SERVICE_NAME: 'service-name'
     DOCKER_IMAGE: 'ghcr.io/xxxxxxx'
     DOCKER_IMAGE_LATEST: 'ghcr.io/xxxxxxx:latest'
